@@ -1,10 +1,15 @@
-import sqlite3
 import string
 import random
+import mysql.connector
 
 
 def start():
-    connection = sqlite3.connect('database.db')
+    connection = mysql.connector.connect(
+        host='HOST',
+        database='DATABASE',
+        user='USER',
+        password=PASSWORD'
+    )
     cursor = connection.cursor()
     cursor.execute("""CREATE TABLE IF NOT EXISTS passwords (
                             name text,
@@ -42,11 +47,24 @@ def prompt_login():
 
 
 def add_account():
+    connection = mysql.connector.connect(
+        host='HOST',
+        database='DATABASE',
+        user='USER',
+        password=PASSWORD'
+    )
+    cursor = connection.cursor()
+
     name = input('Enter your account name: ')
+    cursor.execute(f"SELECT name FROM accounts")
+    names = str(cursor.fetchall())
+
+    if name in names:
+        print(f'Name already in use.\n')
+        prompt_login()
+
     password = input('Enter your account master password: ')
 
-    connection = sqlite3.connect('database.db')
-    cursor = connection.cursor()
     cursor.execute(f"INSERT INTO accounts VALUES ('{name}', '{password}')")
     connection.commit()
     connection.close()
@@ -55,13 +73,18 @@ def add_account():
 
 
 def login():
-    connection = sqlite3.connect('database.db')
+    connection = mysql.connector.connect(
+        host='HOST',
+        database='DATABASE',
+        user='USER',
+        password=PASSWORD'
+    )
     cursor = connection.cursor()
 
     name = input('Enter your account name: ')
 
     cursor.execute(f"SELECT name FROM accounts")
-    names = str(cursor.fetchall())
+    names = format_result(cursor.fetchall())
 
     if name not in names:
         print(f'Invalid name.\n')
@@ -70,9 +93,8 @@ def login():
     password_input = input('Enter your master password: ')
 
     cursor.execute(f"SELECT password FROM accounts WHERE name='{name}'")
-    password = str(cursor.fetchone())[2:][:-3]
+    password = format_result(cursor.fetchone())
 
-    connection.commit()
     connection.close()
 
     if password_input == password:
@@ -113,7 +135,12 @@ def store_password(name: str):
     password = generate_password()
     print(f'Your new password is: {password}')
 
-    connection = sqlite3.connect('database.db')
+    connection = mysql.connector.connect(
+        host='HOST',
+        database='DATABASE',
+        user='USER',
+        password=PASSWORD'
+    )
     cursor = connection.cursor()
     cursor.execute(f"INSERT INTO passwords VALUES ('{name}', '{platform}', '{password}')")
     connection.commit()
@@ -123,12 +150,27 @@ def store_password(name: str):
 
 
 def get_password(name: str):
+    connection = mysql.connector.connect(
+        host='HOST',
+        database='DATABASE',
+        user='USER',
+        password=PASSWORD'
+    )
+    cursor = connection.cursor()
+    cursor.execute(f"SELECT platform FROM passwords WHERE name='{name}'")
+    platforms = format_result(cursor.fetchall())
+
+    print('*'*15)
+    if type(platforms) == list:
+        for platform in platforms:
+            print(platform)
+    else:
+        print(platforms)
+    print('*'*15 + '\n')
     platform = input('Enter the name of the platform: ')
 
-    connection = sqlite3.connect('database.db')
-    cursor = connection.cursor()
     cursor.execute(f"SELECT password FROM passwords WHERE platform='{platform}' AND name='{name}'")
-    password = str(cursor.fetchone())[2:][:-3]
+    password = format_result(cursor.fetchone())
     connection.commit()
     connection.close()
     if password != '':
@@ -144,6 +186,19 @@ def generate_password():
         index = random.randint(0, len(characters) - 1)
         password += characters[index]
     return password
+
+
+def format_result(result):
+    formatted = []
+    if len(result) > 1:
+        for x in range(0, len(result)):
+            formatted.append(result[x][0])
+    else:
+        return result[0]
+    if len(formatted) == 1:
+        return formatted[0]
+    else:
+        return formatted
 
 
 if __name__ == '__main__':
