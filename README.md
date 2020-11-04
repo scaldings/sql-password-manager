@@ -1,5 +1,6 @@
 # sql-password-manager
 A python script that manages and creates passwords.  
+Inspired by @KalleHallden  
   
 ## Features
 * Accounts / profile - Log in as a different person  
