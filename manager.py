@@ -8,7 +8,7 @@ def connect():
         host='HOST',
         database='DATABASE',
         user='USER',
-        password=PASSWORD'
+        password='PASSWORD'
     )
     return connection
 
