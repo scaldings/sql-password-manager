@@ -1,14 +1,17 @@
 import string
 import random
+import stdiomask
+import os
+import creds
 import mysql.connector
 
 
 def connect():
     connection = mysql.connector.connect(
-        host='HOST',
-        database='DATABASE',
-        user='USER',
-        password='PASSWORD'
+        host=creds.HOST,
+        user=creds.USER,
+        password=creds.PASSWORD,
+        database=creds.DATABASE
     )
     return connection
 
@@ -16,12 +19,12 @@ def connect():
 def start():
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("""CREATE TABLE IF NOT EXISTS passwords (
+    cursor.execute("""CREATE TABLE IF NOT EXISTS manager_passwords (
                             name text,
                             platform text,
                             password text
                             )""")
-    cursor.execute("""CREATE TABLE IF NOT EXISTS accounts (
+    cursor.execute("""CREATE TABLE IF NOT EXISTS manager_accounts (
                             name text,
                             password text
                             )""")
@@ -47,6 +50,7 @@ def prompt_login():
         print('\n')
         login()
     else:
+        cls()
         print('Unknown function.\n')
         prompt_login()
 
@@ -56,18 +60,20 @@ def add_account():
     cursor = connection.cursor()
 
     name = input('Enter your account name: ')
-    cursor.execute(f"SELECT name FROM accounts")
+    cursor.execute(f"SELECT name FROM manager_accounts")
     names = str(cursor.fetchall())
 
     if name in names:
+        cls()
         print(f'Name already in use.\n')
         prompt_login()
 
-    password = input('Enter your account master password: ')
+    password_input = stdiomask.getpass('Enter your account master password: ')
 
-    cursor.execute(f"INSERT INTO accounts VALUES ('{name}', '{password}')")
+    cursor.execute(f"INSERT INTO manager_accounts VALUES ('{name}', '{password_input}')")
     connection.commit()
     connection.close()
+    cls()
     print(f'Your account has been created.\n')
     prompt_login()
 
@@ -77,17 +83,15 @@ def login():
     cursor = connection.cursor()
 
     name = input('Enter your account name: ')
-
-    cursor.execute(f"SELECT name FROM accounts")
+    cursor.execute(f"SELECT name FROM manager_accounts")
     names = format_result(cursor.fetchall())
-
     if name not in names:
         print(f'Invalid name.\n')
         login()
 
-    password_input = input('Enter your master password: ')
+    password_input = stdiomask.getpass(prompt='Enter your master password: ')
 
-    cursor.execute(f"SELECT password FROM accounts WHERE name='{name}'")
+    cursor.execute(f"SELECT password FROM manager_accounts WHERE name='{name}'")
     password = format_result(cursor.fetchone())
 
     connection.close()
@@ -118,6 +122,7 @@ def prompt(name: str):
         print('\n')
         get_password(name)
     elif selected == 'logout':
+        cls()
         print('Logged out.\n')
         prompt_login()
     else:
@@ -132,7 +137,7 @@ def store_password(name: str):
 
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute(f"INSERT INTO passwords VALUES ('{name}', '{platform}', '{password}')")
+    cursor.execute(f"INSERT INTO manager_passwords VALUES ('{name}', '{platform}', '{password}')")
     connection.commit()
     connection.close()
     print('Password saved.\n')
@@ -142,7 +147,7 @@ def store_password(name: str):
 def get_password(name: str):
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute(f"SELECT platform FROM passwords WHERE name='{name}'")
+    cursor.execute(f"SELECT platform FROM manager_passwords WHERE name='{name}'")
     platforms = format_result(cursor.fetchall())
 
     print('*'*15)
@@ -152,16 +157,19 @@ def get_password(name: str):
     else:
         print(platforms)
     print('*'*15 + '\n')
-    platform = input('Enter the name of the platform: ')
 
-    cursor.execute(f"SELECT password FROM passwords WHERE platform='{platform}' AND name='{name}'")
-    password = format_result(cursor.fetchone())
+    if platforms is not None:
+        platform_input = input('Enter the name of the platform: ')
+        cursor.execute(f"SELECT password FROM manager_passwords WHERE platform='{platform_input}' AND name='{name}'")
+        password = format_result(cursor.fetchone())
+        if password != '':
+            print(f'Your password for {platform_input} is {password}\n')
+        else:
+            print('There is no password available.\n')
+
     connection.commit()
     connection.close()
-    if password != '':
-        print(f'Your password is {password}\n')
-    else:
-        print('There is no password available.\n')
+
     prompt(name)
 
 
@@ -187,6 +195,10 @@ def format_result(result):
         return formatted[0]
     else:
         return formatted
+
+
+def cls():
+    os.system('cls' if os.name == 'nt' else 'clear')
 
 
 if __name__ == '__main__':
