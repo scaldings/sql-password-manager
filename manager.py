@@ -3,13 +3,18 @@ import random
 import mysql.connector
 
 
-def start():
+def connect():
     connection = mysql.connector.connect(
         host='HOST',
         database='DATABASE',
         user='USER',
         password=PASSWORD'
     )
+    return connection
+
+
+def start():
+    connection = connect()
     cursor = connection.cursor()
     cursor.execute("""CREATE TABLE IF NOT EXISTS passwords (
                             name text,
@@ -47,12 +52,7 @@ def prompt_login():
 
 
 def add_account():
-    connection = mysql.connector.connect(
-        host='HOST',
-        database='DATABASE',
-        user='USER',
-        password=PASSWORD'
-    )
+    connection = connect()
     cursor = connection.cursor()
 
     name = input('Enter your account name: ')
@@ -73,12 +73,7 @@ def add_account():
 
 
 def login():
-    connection = mysql.connector.connect(
-        host='HOST',
-        database='DATABASE',
-        user='USER',
-        password=PASSWORD'
-    )
+    connection = connect()
     cursor = connection.cursor()
 
     name = input('Enter your account name: ')
@@ -135,12 +130,7 @@ def store_password(name: str):
     password = generate_password()
     print(f'Your new password is: {password}')
 
-    connection = mysql.connector.connect(
-        host='HOST',
-        database='DATABASE',
-        user='USER',
-        password=PASSWORD'
-    )
+    connection = connect()
     cursor = connection.cursor()
     cursor.execute(f"INSERT INTO passwords VALUES ('{name}', '{platform}', '{password}')")
     connection.commit()
@@ -150,12 +140,7 @@ def store_password(name: str):
 
 
 def get_password(name: str):
-    connection = mysql.connector.connect(
-        host='HOST',
-        database='DATABASE',
-        user='USER',
-        password=PASSWORD'
-    )
+    connection = connect()
     cursor = connection.cursor()
     cursor.execute(f"SELECT platform FROM passwords WHERE name='{name}'")
     platforms = format_result(cursor.fetchall())
