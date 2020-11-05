@@ -190,11 +190,14 @@ def generate_password():
 
 def format_result(result):
     formatted = []
-    if len(result) > 1:
-        for x in range(0, len(result)):
-            formatted.append(result[x][0])
+    if len(result) > 0:
+        if len(result) > 1:
+            for x in range(0, len(result)):
+                formatted.append(result[x][0])
+        else:
+            return result[0]
     else:
-        return result[0]
+        return None
     if len(formatted) == 1:
         return formatted[0]
     else:
