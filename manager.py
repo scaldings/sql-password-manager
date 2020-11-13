@@ -4,6 +4,7 @@ import stdiomask
 import os
 import creds
 import mysql.connector
+import time
 
 
 def connect():
@@ -30,6 +31,7 @@ def start():
                             )""")
     connection.commit()
     connection.close()
+    cls()
     prompt_login()
 
 
@@ -79,6 +81,7 @@ def add_account():
 
 
 def login():
+    cls()
     connection = connect()
     cursor = connection.cursor()
 
@@ -105,6 +108,7 @@ def login():
 
 
 def prompt(name: str):
+    cls()
     print('*'*15)
     print('quit = quit')
     print('store = store password')
@@ -131,9 +135,23 @@ def prompt(name: str):
 
 
 def store_password(name: str):
+    cls()
     platform = input('Enter the name of the platform: ')
-    password = generate_password()
-    print(f'Your new password is: {password}')
+    print('*'*15)
+    print('gen = generate random password')
+    print('in = input your own password')
+    print('*'*15)
+    selected = input(': ')
+
+    if selected == 'gen':
+        password = generate_password()
+        print(f'Your new password is: {password}')
+    elif selected == 'in':
+        password = input('Enter your password: ')
+        print(f'Your password is: {password}')
+    else:
+        print('Unknown function.\n')
+        store_password(name)
 
     connection = connect()
     cursor = connection.cursor()
@@ -145,6 +163,7 @@ def store_password(name: str):
 
 
 def get_password(name: str):
+    cls()
     connection = connect()
     cursor = connection.cursor()
     cursor.execute(f"SELECT platform FROM manager_passwords WHERE name='{name}'")
@@ -164,9 +183,11 @@ def get_password(name: str):
         password = format_result(cursor.fetchone())
         if password != '':
             print(f'Your password for {platform_input} is {password}\n')
+            time.sleep(7)
         else:
             print('There is no password available.\n')
-
+    else:
+        time.sleep(3)
     connection.commit()
     connection.close()
 
