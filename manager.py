@@ -174,7 +174,10 @@ def get_password(name: str):
         for platform in platforms:
             print(platform)
     else:
-        print(platforms)
+        if platforms is not None:
+        	print(platforms[0])
+        else:
+        	print(platforms)
     print('*'*15 + '\n')
 
     if platforms is not None:
