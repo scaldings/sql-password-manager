@@ -113,6 +113,7 @@ def prompt(name: str):
     print('quit = quit')
     print('store = store password')
     print('get = get password')
+    print('remove = remove password')
     print('logout = logout')
     print('*'*15)
     selected = input(': ')
@@ -125,6 +126,9 @@ def prompt(name: str):
     elif selected == 'get':
         print('\n')
         get_password(name)
+    elif selected == 'remove':
+        print('\n')
+        remove_password(name)
     elif selected == 'logout':
         cls()
         print('Logged out.\n')
@@ -193,9 +197,37 @@ def get_password(name: str):
         time.sleep(3)
     connection.commit()
     connection.close()
-
     prompt(name)
 
+
+def remove_password(name: str):
+    cls()
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute(f"SELECT platform FROM manager_passwords WHERE name='{name}'")
+    platforms = format_result(cursor.fetchall())
+
+    print('*'*15)
+    if type(platforms) == list:
+        for platform in platforms:
+            print(platform)
+    else:
+        if platforms is not None:
+        	print(platforms[0])
+        else:
+        	print(platforms)
+    print('*'*15 + '\n')
+
+    if platforms is not None:
+        platform_input = input('Enter the name of the platform: ')
+        cursor.execute(f"DELETE platform FROM manager_passwords WHERE platform='{platform_input}'")
+        print('Password removed.')
+    else:
+        time.sleep(3)
+    connection.commit()
+    connection.close()
+    prompt(name)
+    
 
 def generate_password():
     characters, password = list(string.ascii_letters + '0123456789'), ''
